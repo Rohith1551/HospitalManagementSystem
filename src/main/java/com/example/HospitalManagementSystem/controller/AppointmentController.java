@@ -6,6 +6,7 @@ import com.example.HospitalManagementSystem.entity.Doctor;
 import com.example.HospitalManagementSystem.entity.Patient;
 import com.example.HospitalManagementSystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class AppointmentController {
     @Autowired
     private AppointmentService service;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/Patient/{patientId}/doctor/{doctorId}")
     public Appointment createAppointment(@PathVariable Long patientId,
                                          @PathVariable Long doctorId,

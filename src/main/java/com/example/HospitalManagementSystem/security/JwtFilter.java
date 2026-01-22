@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,18 +19,14 @@ import java.util.List;
 @Component
 public class JwtFilter implements Filter {
 
-    private final JwtUtil jwtUtil;
-
-    public JwtFilter(JwtUtil jwtUtil) {
-        this.jwtUtil = jwtUtil;
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public void doFilter(ServletRequest request,
                          ServletResponse response,
                          FilterChain chain)
             throws IOException, ServletException {
-        System.out.println("JWT FILTER HIT");
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
 
@@ -43,14 +40,21 @@ public class JwtFilter implements Filter {
             if (jwtUtil.isTokenValid(token)) {
 
                 String username = jwtUtil.extractUsername(token);
-                System.out.println("USERNAME FROM TOKEN: " + username);
+
+                List<String> roles = jwtUtil.extractRoles(token);
+
+                List<SimpleGrantedAuthority> authorities =
+                        roles
+                                .stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
 
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                                authorities
                         );
 
                 // tell Spring Security that user is authenticated
@@ -60,7 +64,6 @@ public class JwtFilter implements Filter {
         }
 
         chain.doFilter(request, response);
-        System.out.println("AUTH HEADER: " + authHeader);
 
 
 

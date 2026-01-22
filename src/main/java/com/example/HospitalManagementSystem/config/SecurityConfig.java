@@ -1,6 +1,7 @@
 package com.example.HospitalManagementSystem.config;
 
 import com.example.HospitalManagementSystem.security.JwtFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -21,7 +23,7 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable());
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**")
+                .requestMatchers("/auth/**", "/debug/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
