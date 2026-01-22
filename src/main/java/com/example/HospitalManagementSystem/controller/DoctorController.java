@@ -1,46 +1,67 @@
 package com.example.HospitalManagementSystem.controller;
 
-
+import com.example.HospitalManagementSystem.entity.Appointment;
 import com.example.HospitalManagementSystem.entity.Doctor;
-import com.example.HospitalManagementSystem.service.DoctorService;
+import com.example.HospitalManagementSystem.repository.AppointmentRepository;
+import com.example.HospitalManagementSystem.repository.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/Doctor")
+@RequestMapping("/doctor")
 public class DoctorController {
 
     @Autowired
-    private DoctorService service;
+    private DoctorRepository doctorRepository;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/createDoctor")
-    public Doctor createDoctor(@RequestBody Doctor doctor){
-        return service.createDoctor(doctor);
+    @Autowired
+    private AppointmentRepository appointmentRepository;
+
+    // ================= DOCTOR PROFILE =================
+    @PreAuthorize("hasRole('DOCTOR')")
+    @GetMapping("/profile")
+    public Doctor myProfile() {
+
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        return doctorRepository.findByUserUsername(username)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
     }
 
-    @GetMapping("/getAllDoctors")
-    public List<Doctor> getAllDoctors(){
+    // ================= DOCTOR APPOINTMENTS =================
+    @PreAuthorize("hasRole('DOCTOR')")
+    @GetMapping("/appointments")
+    public List<Appointment> myAppointments() {
 
-        return service.getAllDoctors();
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        Doctor doctor = doctorRepository.findByUserUsername(username)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        return appointmentRepository.findByDoctor(doctor);
     }
 
-    @GetMapping("/{id}")
-    public Doctor getDoctorById(@PathVariable Long id){
-         return service.getDoctorById(id);
-    }
+    // ================= UPDATE APPOINTMENT STATUS =================
+    @PreAuthorize("hasRole('DOCTOR')")
+    @PutMapping("/appointment/{id}/status")
+    public Appointment updateStatus(
+            @PathVariable Long id,
+            @RequestParam Appointment.Status status
+    ) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-    @PutMapping("updateDoctor/{id}")
-    public Doctor updateDoctor(@PathVariable Long id, @RequestBody Doctor doctor){
-        return service.updateDoctor(id,doctor);
+        appointment.setStatus(status);
+        return appointmentRepository.save(appointment);
     }
-
-    @DeleteMapping("deleteDoctor/{id}")
-    public void deleteDoctor(@PathVariable Long id){
-        service.deleteDoctor(id);
-    }
-
 }

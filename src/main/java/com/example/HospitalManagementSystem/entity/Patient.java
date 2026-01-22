@@ -1,14 +1,12 @@
 package com.example.HospitalManagementSystem.entity;
 
-
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "patients")
@@ -22,11 +20,18 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Link patient to auth user
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
     private String name;
     private Integer age;
     private String phone;
     private String problem;
 
-    @Lob
+
     private String medicalHistory;
+
+    private LocalDateTime entryTime;
 }

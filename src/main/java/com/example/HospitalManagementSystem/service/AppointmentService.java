@@ -1,6 +1,5 @@
 package com.example.HospitalManagementSystem.service;
 
-
 import com.example.HospitalManagementSystem.entity.Appointment;
 import com.example.HospitalManagementSystem.entity.Doctor;
 import com.example.HospitalManagementSystem.entity.Patient;
@@ -16,60 +15,58 @@ import java.util.List;
 public class AppointmentService {
 
     @Autowired
-    private AppointmentRepository Arepo;
+    private AppointmentRepository appointmentRepository;
 
     @Autowired
-    private PatientRepository Prepo;
+    private PatientRepository patientRepository;
 
     @Autowired
-    private DoctorRepository Drepo;
+    private DoctorRepository doctorRepository;
 
-    public Appointment createAppointment( Long patientId, Long doctorId, Appointment appointment){
-        Patient patient = Prepo.findById(patientId).
-                orElseThrow(() -> new RuntimeException("Patient not found"));
-        Doctor doctor = Drepo.findById(doctorId).
-                orElseThrow(() -> new RuntimeException("Doctor not found"));
+    // ADMIN creates appointment
+    public Appointment createAppointment(Long patientId, Long doctorId, Appointment appointment) {
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
-        appointment.setStatus("BOOKED");
+        appointment.setStatus(Appointment.Status.SCHEDULED);
 
-        return Arepo.save(appointment);
-
+        return appointmentRepository.save(appointment);
     }
 
-    public List<Appointment> getAllAppointments(){
-        return Arepo.findAll();
+    public List<Appointment> getAllAppointments() {
+        return appointmentRepository.findAll();
     }
 
-    public Appointment getAppointmentById(Long AId){
-        return Arepo.findById(AId).
-                orElseThrow(() -> new RuntimeException("Appointment not found"));
+    public Appointment getAppointmentById(Long id) {
+        return appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
     }
 
-    public List<Appointment> getAppointmentsByDoctor(Long doctorId){
-        return Arepo.findByDoctorId(doctorId);
+    public List<Appointment> getAppointmentsByDoctor(Doctor doctor) {
+        return appointmentRepository.findByDoctor(doctor);
+    }
+    public List<Appointment> getAppointmentsByPatient(Patient patient) {
+        return appointmentRepository.findByPatient(patient);
     }
 
-    public List<Appointment> getAppointmentsByPatient(Long patientId){
-        return Arepo.findByPatientId(patientId);
-    }
 
-    public Appointment updateStatus(Long id, String status){
 
+
+
+    // Update appointment status (ENUM)
+    public Appointment updateStatus(Long id, Appointment.Status status) {
         Appointment appointment = getAppointmentById(id);
-
         appointment.setStatus(status);
-        return Arepo.save(appointment);
-
+        return appointmentRepository.save(appointment);
     }
 
-    public void deleteAppointmentById(Long id){
-        Arepo.deleteById(id);
+    public void deleteAppointmentById(Long id) {
+        appointmentRepository.deleteById(id);
     }
-
-
-
-
-
 }

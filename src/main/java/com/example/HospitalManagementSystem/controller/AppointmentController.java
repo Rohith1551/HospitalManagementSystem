@@ -1,9 +1,10 @@
 package com.example.HospitalManagementSystem.controller;
 
-
 import com.example.HospitalManagementSystem.entity.Appointment;
 import com.example.HospitalManagementSystem.entity.Doctor;
 import com.example.HospitalManagementSystem.entity.Patient;
+import com.example.HospitalManagementSystem.repository.DoctorRepository;
+import com.example.HospitalManagementSystem.repository.PatientRepository;
 import com.example.HospitalManagementSystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,51 +13,79 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/Appointment")
+@RequestMapping("/appointment")
 public class AppointmentController {
 
     @Autowired
     private AppointmentService service;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/Patient/{patientId}/doctor/{doctorId}")
-    public Appointment createAppointment(@PathVariable Long patientId,
-                                         @PathVariable Long doctorId,
-                                         @RequestBody Appointment appointment){
-        return service.createAppointment(patientId,doctorId,appointment);
+    @Autowired
+    private DoctorRepository doctorRepository;
 
+    @Autowired
+    private PatientRepository patientRepository;
+
+    // ================= CREATE APPOINTMENT =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/patient/{patientId}/doctor/{doctorId}")
+    public Appointment createAppointment(
+            @PathVariable Long patientId,
+            @PathVariable Long doctorId,
+            @RequestBody Appointment appointment
+    ) {
+        return service.createAppointment(patientId, doctorId, appointment);
     }
 
-    @GetMapping("/allAppointments")
-    public List<Appointment> getAllAppointments(){
+    // ================= GET ALL (ADMIN) =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    public List<Appointment> getAllAppointments() {
         return service.getAllAppointments();
     }
 
-    @GetMapping("{id}")
-    public Appointment getAppointmentById(@PathVariable Long id){
+    // ================= GET BY ID =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}")
+    public Appointment getAppointmentById(@PathVariable Long id) {
         return service.getAppointmentById(id);
     }
 
-    @GetMapping("/Doctor/{doctorId}")
-    public List<Appointment> getAppointmentsByDoctor(@PathVariable Long doctorId){
-        return service.getAppointmentsByDoctor(doctorId);
+    // ================= GET BY DOCTOR =================
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
+    @GetMapping("/doctor/{doctorId}")
+    public List<Appointment> getAppointmentsByDoctor(@PathVariable Long doctorId) {
+
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        return service.getAppointmentsByDoctor(doctor);
     }
 
+    // ================= GET BY PATIENT =================
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/patient/{patientId}")
-    public List<Appointment> getAppointmentsByPatients(@PathVariable Long patientId){
-        return service.getAppointmentsByPatient(patientId);
+    public List<Appointment> getAppointmentsByPatient(@PathVariable Long patientId) {
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        return service.getAppointmentsByPatient(patient);
     }
 
+    // ================= UPDATE STATUS =================
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR')")
     @PutMapping("/{id}/status")
-    public Appointment updateAppointment(@PathVariable Long id,@RequestParam String status){
-
-        return service.updateStatus(id,status);
+    public Appointment updateAppointmentStatus(
+            @PathVariable Long id,
+            @RequestParam Appointment.Status status
+    ) {
+        return service.updateStatus(id, status);
     }
 
+    // ================= DELETE =================
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void deleteAppointmentById(@PathVariable Long id){
+    public void deleteAppointmentById(@PathVariable Long id) {
         service.deleteAppointmentById(id);
     }
-
-
 }
