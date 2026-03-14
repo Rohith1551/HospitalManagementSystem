@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -113,5 +114,35 @@ public class AdminController {
         appointmentRepository.save(appointment);
 
         return "Appointment assigned successfully";
+    }
+
+    // ================= LIST ALL DOCTORS =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/doctors")
+    public List<Doctor> getAllDoctors() {
+        return doctorRepository.findAll();
+    }
+
+    // ================= UPDATE DOCTOR =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/doctor/{id}")
+    public Doctor updateDoctor(@PathVariable Long id, @RequestBody DoctorRequest req) {
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+        if (req.getName() != null) doctor.setName(req.getName());
+        if (req.getSpecialization() != null) doctor.setSpecialization(req.getSpecialization());
+        if (req.getPhone() != null) doctor.setPhone(req.getPhone());
+        return doctorRepository.save(doctor);
+    }
+
+    // ================= DELETE DOCTOR =================
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/doctor/{id}")
+    public String deleteDoctor(@PathVariable Long id) {
+        if (!doctorRepository.existsById(id)) {
+            throw new RuntimeException("Doctor not found");
+        }
+        doctorRepository.deleteById(id);
+        return "Doctor deleted successfully";
     }
 }

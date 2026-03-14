@@ -1,5 +1,6 @@
 package com.example.HospitalManagementSystem.controller;
 
+import com.example.HospitalManagementSystem.dto.PatientRequest;
 import com.example.HospitalManagementSystem.entity.Patient;
 import com.example.HospitalManagementSystem.repository.PatientRepository;
 import com.example.HospitalManagementSystem.service.PatientService;
@@ -46,5 +47,25 @@ public class PatientController {
     @GetMapping("/all")
     public List<Patient> getAllPatients(){
         return service.getAllPatients();
+    }
+
+    // Admin can update patient
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public Patient updatePatient(@PathVariable Long id, @RequestBody PatientRequest req) {
+        Patient patient = new Patient();
+        patient.setName(req.getName());
+        patient.setAge(req.getAge());
+        patient.setPhone(req.getPhone());
+        patient.setProblem(req.getProblem());
+        patient.setMedicalHistory(req.getMedicalHistory());
+        return service.updatePatient(id, patient);
+    }
+
+    // Admin can delete patient
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public void deletePatient(@PathVariable Long id) {
+        service.deletePatientById(id);
     }
 }

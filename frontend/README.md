@@ -1,70 +1,94 @@
-# Getting Started with Create React App
+# Hospital Management System — Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React frontend for the Doctor Appointment / Medical Management system. It connects to a Spring Boot backend API for authentication, doctors, patients, and appointments.
 
-## Available Scripts
+## Tech stack
 
-In the project directory, you can run:
+- **React** (latest) with functional components and hooks
+- **Vite** — build tool and dev server
+- **TailwindCSS** — styling
+- **Axios** — HTTP client with interceptors for auth and error handling
+- **React Router** — routing and protected routes
+- **react-hot-toast** — toast notifications
 
-### `npm start`
+## Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```bash
+npm install
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Run
 
-### `npm test`
+**Development (with hot reload):**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm run dev
+```
 
-### `npm run build`
+Runs at [http://localhost:5173](http://localhost:5173) by default.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**Production build:**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Preview production build:**
 
-### `npm run eject`
+```bash
+npm run preview
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Environment variables
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Create a `.env` file in the frontend root if you need to override the API base URL:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- `VITE_API_BASE_URL` — backend API base URL (default is set in `src/utils/constants.js` as `http://localhost:8090`)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+The app uses `src/utils/constants.js` for `API_BASE_URL`; you can switch to `import.meta.env.VITE_API_BASE_URL` there if you prefer env-based config.
 
-## Learn More
+## Folder structure
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+frontend/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── common/       # Reusable UI: Button, Input, Modal, Table, Card, Loader, Toast, ConfirmDialog
+│   │   ├── forms/       # DoctorForm, PatientForm, AppointmentForm
+│   │   └── layout/      # Layout, Navbar, Sidebar
+│   ├── context/         # AuthContext (login, logout, user, roles)
+│   ├── hooks/           # useDebounce, useToast
+│   ├── pages/           # Login, Register, Dashboard, Doctors, Patients, Appointments, Profile, NotFound
+│   ├── routes/         # AppRoutes (public, protected, role-based)
+│   ├── services/       # api.js (Axios instance, authAPI, adminAPI, doctorAPI, patientAPI, appointmentAPI)
+│   ├── styles/         # index.css (Tailwind + custom components)
+│   ├── utils/          # constants, helpers (formatDateTime, parseJwt, etc.)
+│   ├── App.jsx
+│   └── main.jsx
+├── index.html
+├── package.json
+├── vite.config.js
+├── tailwind.config.js
+└── postcss.config.js
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Backend CORS
 
-### Code Splitting
+The backend must allow requests from the frontend origin. The Spring Boot app is configured (in `SecurityConfig`) to allow:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- Origins: `http://localhost:3000`, `http://localhost:5173`
+- Methods: GET, POST, PUT, DELETE, OPTIONS
+- Credentials: true
 
-### Analyzing the Bundle Size
+Ensure the backend is running (e.g. on port 8090) before using the frontend.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Features
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Auth:** Login, register (patient), logout; JWT in localStorage; protected routes; role-based access (Admin, Doctor, Patient).
+- **Doctors (Admin):** List, create, edit, delete; search.
+- **Patients (Admin):** List, create, edit, delete; search.
+- **Appointments (Admin / Doctor):** Create (Admin), view, filter by doctor/patient/status, cancel, delete (Admin); pagination.
+- **Dashboard:** Summary cards and recent appointments (Admin / Doctor).
+- **Profile:** Account and role-specific profile (doctor/patient details).
+- **UI:** Loading states, toasts, form validation, confirmation dialogs for destructive actions, responsive layout.
