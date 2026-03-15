@@ -10,13 +10,13 @@ import { PageSpinner } from '../../components/common/Loader'
 import AppointmentForm from '../../components/forms/AppointmentForm'
 import { useToast } from '../../hooks/useToast'
 import { useDebounce } from '../../hooks/useDebounce'
-import { formatDateTime } from '../../utils/helpers'
+import { formatDateTime, toDateTimeLocalValue, toISODateTime } from '../../utils/helpers'
 import { STATUS_BADGE, APPOINTMENT_STATUS } from '../../utils/constants'
 
 const PAGE_SIZE = 10
 
 export default function AppointmentsPage() {
-  const { isAdmin, isDoctor } = useAuth()
+  const { isAdmin, isDoctor, isPatient } = useAuth()
   const [appointments, setAppointments] = useState([])
   const [doctors, setDoctors] = useState([])
   const [patients, setPatients] = useState([])
@@ -32,6 +32,9 @@ export default function AppointmentsPage() {
   const [cancelLoading, setCancelLoading] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [editTarget, setEditTarget] = useState(null)
+  const [editTime, setEditTime] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
   const debouncedSearch = useDebounce(search, 300)
   const toast = useToast()
 
@@ -51,6 +54,9 @@ export default function AppointmentsPage() {
         } else {
           setAppointments([])
         }
+      } else if (isPatient) {
+        const res = await appointmentAPI.getMyAppointments()
+        setAppointments(res.data ?? [])
       } else {
         setAppointments([])
       }
@@ -77,7 +83,7 @@ export default function AppointmentsPage() {
 
   useEffect(() => {
     fetchAppointments()
-  }, [isAdmin, isDoctor])
+  }, [isAdmin, isDoctor, isPatient])
 
   useEffect(() => {
     fetchDoctorsAndPatients()
@@ -145,6 +151,34 @@ export default function AppointmentsPage() {
     }
   }
 
+  const handleEditClick = (apt) => {
+    setEditTarget(apt)
+    setEditTime(toDateTimeLocalValue(apt.appointmentTime))
+  }
+
+  const handleEditClose = () => {
+    setEditTarget(null)
+    setEditTime('')
+  }
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    if (!editTarget || !editTime?.trim()) return
+    setEditLoading(true)
+    try {
+      await appointmentAPI.update(editTarget.id, {
+        appointmentTime: toISODateTime(editTime),
+      })
+      toast.success('Appointment time updated.')
+      handleEditClose()
+      fetchAppointments()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
   const columns = [
     {
       key: 'patient',
@@ -174,9 +208,14 @@ export default function AppointmentsPage() {
             render: (_, row) => (
               <div className="flex gap-2">
                 {row.status === APPOINTMENT_STATUS.SCHEDULED && (
-                  <Button size="sm" variant="danger" onClick={() => handleCancelClick(row)}>
-                    Cancel
-                  </Button>
+                  <>
+                    <Button size="sm" variant="secondary" onClick={() => handleEditClick(row)}>
+                      Edit time
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => handleCancelClick(row)}>
+                      Cancel
+                    </Button>
+                  </>
                 )}
                 <Button size="sm" variant="danger" onClick={() => handleDeleteClick(row)}>
                   Delete
@@ -185,18 +224,20 @@ export default function AppointmentsPage() {
             ),
           },
         ]
-      : [
-          {
-            key: 'actions',
-            label: 'Actions',
-            render: (_, row) =>
-              row.status === APPOINTMENT_STATUS.SCHEDULED ? (
-                <Button size="sm" variant="danger" onClick={() => handleCancelClick(row)}>
-                  Cancel
-                </Button>
-              ) : null,
-          },
-        ]),
+      : isDoctor
+        ? [
+            {
+              key: 'actions',
+              label: 'Actions',
+              render: (_, row) =>
+                row.status === APPOINTMENT_STATUS.SCHEDULED ? (
+                  <Button size="sm" variant="danger" onClick={() => handleCancelClick(row)}>
+                    Cancel
+                  </Button>
+                ) : null,
+            },
+          ]
+        : []),
   ]
 
   return (
@@ -204,7 +245,9 @@ export default function AppointmentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="page-title">Appointments</h1>
-          <p className="page-subtitle">{isAdmin ? 'Manage appointments' : 'Your appointments'}</p>
+          <p className="page-subtitle">
+            {isAdmin ? 'Manage appointments' : isPatient ? 'Your appointments — refresh to see any time updates' : 'Your appointments'}
+          </p>
         </div>
         {isAdmin && <Button onClick={() => setModalOpen(true)}>New appointment</Button>}
       </div>
@@ -329,6 +372,39 @@ export default function AppointmentsPage() {
         variant="danger"
         loading={deleteLoading}
       />
+
+      {isAdmin && editTarget && (
+        <Modal
+          isOpen={!!editTarget}
+          onClose={handleEditClose}
+          title="Update appointment time"
+          size="md"
+        >
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <p className="text-sm text-slate-600">
+              {editTarget.patient?.name} with {editTarget.doctor?.name}
+            </p>
+            <div>
+              <label className="form-label">Date & time</label>
+              <input
+                type="datetime-local"
+                className="form-input w-full"
+                value={editTime}
+                onChange={(e) => setEditTime(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button type="submit" loading={editLoading}>
+                Save
+              </Button>
+              <Button type="button" variant="secondary" onClick={handleEditClose}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   )
 }

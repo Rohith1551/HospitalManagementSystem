@@ -79,11 +79,11 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Admin + Doctor */}
+        {/* Admin, Doctor, Patient – patients see only their own appointments */}
         <Route
           path="appointments"
           element={
-            <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_DOCTOR']}>
+            <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_PATIENT']}>
               <AppointmentsPage />
             </ProtectedRoute>
           }

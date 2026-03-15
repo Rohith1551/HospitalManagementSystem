@@ -1,5 +1,6 @@
 package com.example.HospitalManagementSystem.controller;
 
+import com.example.HospitalManagementSystem.dto.UpdateAppointmentTimeRequest;
 import com.example.HospitalManagementSystem.entity.Appointment;
 import com.example.HospitalManagementSystem.entity.Doctor;
 import com.example.HospitalManagementSystem.entity.Patient;
@@ -8,6 +9,7 @@ import com.example.HospitalManagementSystem.repository.PatientRepository;
 import com.example.HospitalManagementSystem.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -70,6 +72,29 @@ public class AppointmentController {
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         return service.getAppointmentsByPatient(patient);
+    }
+
+    /** Current logged-in patient's appointments (so they can see time and any updates). */
+    @PreAuthorize("hasRole('PATIENT')")
+    @GetMapping("/me")
+    public List<Appointment> getMyAppointments() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Patient patient = patientRepository.findByUserUsername(username)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+        return service.getAppointmentsByPatient(patient);
+    }
+
+    /** Update appointment time only (ADMIN). Body: { "appointmentTime": "2024-06-15T10:30:00" } */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    public Appointment updateAppointment(
+            @PathVariable Long id,
+            @RequestBody UpdateAppointmentTimeRequest request
+    ) {
+        if (request == null || request.getAppointmentTime() == null) {
+            throw new IllegalArgumentException("Request body must contain appointmentTime (ISO-8601 datetime)");
+        }
+        return service.updateAppointmentTime(id, request.getAppointmentTime());
     }
 
     // ================= UPDATE STATUS =================

@@ -132,6 +132,10 @@ export const appointmentAPI = {
   getByDoctor: (doctorId) => api.get(`/appointment/doctor/${doctorId}`),
   /** GET /appointment/patient/{id} (ROLE_ADMIN) */
   getByPatient: (patientId) => api.get(`/appointment/patient/${patientId}`),
+  /** GET /appointment/me – current patient's appointments (ROLE_PATIENT) */
+  getMyAppointments: () => api.get('/appointment/me'),
+  /** PUT /appointment/{id} – update appointment time (ROLE_ADMIN) */
+  update: (id, body) => api.put(`/appointment/${id}`, body),
   /**
    * PUT /appointment/{id}/status?status=...
    * (ROLE_ADMIN | ROLE_DOCTOR)

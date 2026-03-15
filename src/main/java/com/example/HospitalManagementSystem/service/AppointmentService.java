@@ -9,6 +9,7 @@ import com.example.HospitalManagementSystem.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -57,7 +58,14 @@ public class AppointmentService {
 
 
 
-
+    public Appointment updateAppointmentTime(Long id, LocalDateTime appointmentTime) {
+        if (appointmentTime == null) {
+            throw new IllegalArgumentException("Appointment time is required");
+        }
+        Appointment appointment = getAppointmentById(id);
+        appointment.setAppointmentTime(appointmentTime);
+        return appointmentRepository.save(appointment);
+    }
 
     // Update appointment status (ENUM)
     public Appointment updateStatus(Long id, Appointment.Status status) {

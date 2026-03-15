@@ -46,7 +46,7 @@ const ALL_NAV = [
   { to: '/dashboard',    label: 'Dashboard',    Icon: Icon.Home,        roles: ['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_PATIENT'] },
   { to: '/doctors',      label: 'Doctors',      Icon: Icon.Stethoscope, roles: ['ROLE_ADMIN'] },
   { to: '/patients',     label: 'Patients',     Icon: Icon.Users,       roles: ['ROLE_ADMIN'] },
-  { to: '/appointments', label: 'Appointments', Icon: Icon.Calendar,    roles: ['ROLE_ADMIN', 'ROLE_DOCTOR'] },
+  { to: '/appointments', label: 'Appointments', Icon: Icon.Calendar,    roles: ['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_PATIENT'] },
   { to: '/profile',      label: 'My Profile',   Icon: Icon.User,        roles: ['ROLE_ADMIN', 'ROLE_DOCTOR', 'ROLE_PATIENT'] },
 ]
 
