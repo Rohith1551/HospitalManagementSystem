@@ -25,7 +25,10 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend
-          npm install
+          ls
+          node -v
+          npm -v
+          npm ci
           npm run build
 
       # 4. Setup Java (Backend)
