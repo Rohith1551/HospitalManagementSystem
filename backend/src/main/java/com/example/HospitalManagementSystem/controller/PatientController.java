@@ -30,7 +30,7 @@ public class PatientController {
                 .getName();
 
         return patientRepository.findByUserUsername(username)
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+                .orElseThrow(() -> new RuntimeException("Patient not found duh"));
     }
 
 
