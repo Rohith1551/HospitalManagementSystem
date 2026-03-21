@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - 2026-03-15-qsm b
+
 
 jobs:
   build:
