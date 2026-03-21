@@ -1,10 +1,22 @@
 services:
+  db:
+    image: postgres:15
+    container_name: hms-db
+    environment:
+      POSTGRES_DB: HospitalManagementSystem
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Rohith2005rtg
+    ports:
+      - "5432:5432"
+
   backend:
     build: ./backend
     ports:
-      - "8090:8090"
+      - "8090:8080"
+    depends_on:
+      - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/HospitalManagementSystem
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/HospitalManagementSystem
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: Rohith2005rtg
 
