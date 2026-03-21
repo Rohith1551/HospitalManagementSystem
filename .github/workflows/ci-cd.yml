@@ -2,43 +2,44 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # ---------------- BACKEND ----------------
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Build backend
-        run: |
-          cd backend
-          mvn clean install -DskipTests
-
-      # ---------------- FRONTEND ----------------
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      # 2. Setup Node (Frontend)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Build frontend
+      # 3. Build Frontend
+      - name: Build Frontend
         run: |
           cd frontend
           npm install
           npm run build
 
-      # ---------------- DOCKER ----------------
+      # 4. Setup Java (Backend)
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 5. Build Backend
+      - name: Build Backend
+        run: |
+          cd backend
+          ./mvnw clean package -DskipTests
+
+      # 6. Build Docker images
       - name: Build Docker images
-        run: docker-compose build
+        run: docker compose build
