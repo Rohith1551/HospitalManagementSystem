@@ -32,11 +32,18 @@ api.interceptors.response.use(
     const status  = error.response?.status
     const data    = error.response?.data
 
-    // Extract readable message: backend returns plain strings for errors
+    // No response = request never reached server (backend down, wrong URL, CORS, or network)
+    const isNetworkError = !error.response
+
+    // Spring Boot usually returns JSON like: { message: "...", status: 500, ... }
     const message =
-      typeof data === 'string' && data.length < 200
-        ? data
-        : error.message ?? 'An unexpected error occurred.'
+      isNetworkError
+        ? 'Cannot reach the server. Is the backend running at http://localhost:8090?'
+        : typeof data === 'object' && data?.message
+          ? data.message
+          : typeof data === 'string' && data.length < 200
+            ? data
+            : error.message ?? 'An unexpected error occurred.'
 
     if (status === 401) {
       localStorage.removeItem(TOKEN_KEY)
@@ -49,11 +56,16 @@ api.interceptors.response.use(
       toast.error('Access denied — you do not have permission for this action.')
     } else if (status === 500) {
       toast.error('Server error. Please try again later.')
-    } else if (!error.response) {
-      toast.error('Cannot reach the server. Check your network connection.')
+    } else if (isNetworkError) {
+      toast.error('Cannot reach the server. Is the backend running at http://localhost:8090?')
     }
 
-    return Promise.reject(new Error(message))
+    // Preserve status and response data on the rejected Error so callers
+    // (pages/components) can inspect the HTTP status and backend message.
+    const err = new Error(message)
+    if (status) err.status = status
+    if (data)   err.data = data
+    return Promise.reject(err)
   },
 )
 

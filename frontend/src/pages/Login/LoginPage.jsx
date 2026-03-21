@@ -36,7 +36,15 @@ export default function LoginPage() {
       toast.success('Welcome back!')
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      setErrors({ submit: err.message })
+      // Log full error for debugging (status, response data)
+      // The axios response interceptor attaches `.status` and `.data` on the Error.
+      // Show backend-provided message when available so the user sees the real reason.
+      // eslint-disable-next-line no-console
+      console.error('Login error:', err)
+      const backendMessage = err?.data?.message ?? err?.data ?? err?.message ?? 'Login failed'
+      setErrors({ submit: backendMessage })
+      // Also show a toast so it's noticeable
+      try { toast.error(backendMessage) } catch (_) {}
     } finally {
       setLoading(false)
     }
