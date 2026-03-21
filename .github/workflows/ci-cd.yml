@@ -41,8 +41,9 @@ jobs:
       # 5. Build Backend
       - name: Build Backend
         run: |
-          cd backend
-          ./mvnw clean package -DskipTests
+          chmod +x mvnw
+          ./mvnw -f backend/pom.xml clean package -DskipTests
+          
 
       # 6. Build Docker images
       - name: Build Docker images
