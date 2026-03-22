@@ -1,5 +1,5 @@
 /** Backend base URL (Spring Boot runs on 8090) */
-export const API_BASE_URL = "http://100.53.137.254:8090";
+export const API_BASE_URL = "http://50.19.182.65:8090";
 /** LocalStorage keys */
 export const TOKEN_KEY = 'hms_token'
 export const USER_KEY  = 'hms_user'
