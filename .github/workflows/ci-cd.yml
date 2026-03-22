@@ -4,17 +4,18 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup Node (Frontend)
+      # 2. Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -27,24 +28,9 @@ jobs:
           npm ci
           npm run build
 
-      # 4. Setup Java (Backend)
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      # ❌ REMOVE backend build step
 
-      # 5. Build Backend
-      - name: Build Backend
-        run: |
-          chmod +x mvnw
-          ./mvnw -f backend/pom.xml clean package -DskipTests
-
-      # 6. Build Docker images
-      - name: Build Docker images
-        run: docker compose build
-
-      # 7. Deploy to EC2 (CD)
+      # 4. Deploy to EC2
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
         with:
